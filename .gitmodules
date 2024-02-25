@@ -1,0 +1,3 @@
+[submodule "chess_ruby"]
+	path = chess_ruby
+	url = https://github.com/maksimoreo/chess_ruby.git
