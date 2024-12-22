@@ -35,3 +35,21 @@ Finally you can run the bot:
 ```sh
 ruby src/main.rb
 ```
+
+The bot is now online. Start the game with `!play` command and send moves with `!move e2e4`.
+
+## Docker
+
+```sh
+# Build
+docker build --tag chess_bot:v1 .
+
+# Run
+docker run -it --rm \
+    --name chess_bot \
+    --env CHESS_BOT_DISCORD_TOKEN="" \
+    --env CHESS_BOT_GAME_CHANNEL_ID="" \
+    --env CHESS_BOT_ADMIN_ROLE_ID="" \
+    --env CHESS_BOT_ADMIN_CHANNEL_ID="" \
+    chess_bot:v1
+```
