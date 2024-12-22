@@ -6,20 +6,20 @@ require_relative 'discord_config'
 class GameBotBase
   attr_reader :bot
 
-  def initialize(on_stop: nil,
-    token: (DiscordConfig.const_defined?('DISCORD_BOT_TOKEN') ? DiscordConfig::DISCORD_BOT_TOKEN : ENV['DISCORD_BOT_TOKEN']),
-    game_channel_id:, bot_admin_role_id: DiscordConfig::BOT_ADMIN_ROLE_ID,
-    bot_admin_channel_id: DiscordConfig::BOT_ADMIN_CHANNEL_ID)
-
+  def initialize(game_channel_id:, on_stop: nil,
+                 token: (DiscordConfig.const_defined?('DISCORD_BOT_TOKEN') ? DiscordConfig::DISCORD_BOT_TOKEN : ENV['DISCORD_BOT_TOKEN']), bot_admin_role_id: DiscordConfig::BOT_ADMIN_ROLE_ID,
+                 bot_admin_channel_id: DiscordConfig::BOT_ADMIN_CHANNEL_ID)
     @game_channel_id = game_channel_id
     @bot_admin_channel_id = bot_admin_channel_id
     @bot_admin_role_id = bot_admin_role_id
-    @bot = Discordrb::Commands::CommandBot.new prefix: '!', token: token, channels: [game_channel_id, bot_admin_channel_id]
+    @bot = Discordrb::Commands::CommandBot.new prefix: '!', token: token,
+                                               channels: [game_channel_id, bot_admin_channel_id]
 
     @msg_accumulator = ''
 
     # Bot admin can stop the bot process
-    @bot.command :shutdown, aliases: [:bot_stop, :stop_bot, :disconnect], allowed_roles: [@bot_admin_role_id], help_available: false do |event|
+    @bot.command :shutdown, aliases: %i[bot_stop stop_bot disconnect], allowed_roles: [@bot_admin_role_id],
+                            help_available: false do |event|
       puts "User #{event.user.distinct} stopped the bot."
       on_stop.call unless on_stop.nil?
       stop
@@ -28,16 +28,17 @@ class GameBotBase
     end
 
     # Bot admin can inspect object attributes (variables)
-    @bot.command :read, aliases: [:variable, :var, :getvar], allowed_roles: [@bot_admin_role_id], help_available: false do |event, variable_name|
+    @bot.command :read, aliases: %i[variable var getvar], allowed_roles: [@bot_admin_role_id],
+                        help_available: false do |event, variable_name|
       puts "User #{event.user.distinct} asks to reveal variables value: #{variable_name}."
       if variable_name.nil? || variable_name.empty?
-        say_admin "Usage: !variable <variable name>"
+        say_admin 'Usage: !variable <variable name>'
       else
         begin
           variable_value = instance_variable_get("@#{variable_name}")
 
           if variable_value.nil?
-            say_admin "This variable is nil"
+            say_admin 'This variable is nil'
           elsif variable_value.is_a?(String) && variable_value.empty?
             say_admin 'This variable holds an emtpy string'
           else
@@ -52,10 +53,10 @@ class GameBotBase
     end
 
     @bot.command :set, aliases: [:setvar], allowed_roles: [@bot_admin_role_id], help_available: false,
-      arg_types: [String] do |event, variable_name, value|
+                       arg_types: [String] do |event, variable_name, value|
       puts "User #{event.user.distinct} asks to change variable: #{variable_name}."
       if variable_name.nil? || variable_name.empty? || value.nil? || value.empty?
-        say_admin "Usage: !variable <variable name> <value>"
+        say_admin 'Usage: !variable <variable name> <value>'
       else
         begin
           instance_variable_set("@#{variable_name}", value)
@@ -68,11 +69,11 @@ class GameBotBase
       nil
     end
 
-    @bot.command :setint, aliases: [:setvarint, :setintvar], allowed_roles: [@bot_admin_role_id],
-      help_available: false, arg_types: [String, Integer] do |event, variable_name, value|
+    @bot.command :setint, aliases: %i[setvarint setintvar], allowed_roles: [@bot_admin_role_id],
+                          help_available: false, arg_types: [String, Integer] do |event, variable_name, value|
       puts "User #{event.user.distinct} asks to change variable: #{variable_name}."
       if variable_name.nil? || variable_name.empty? || value.nil?
-        say_admin "Usage: !variable <variable name> <value>"
+        say_admin 'Usage: !variable <variable name> <value>'
       else
         begin
           instance_variable_set("@#{variable_name}", value)
@@ -102,11 +103,13 @@ class GameBotBase
 
   def say!(message)
     raise ArgumentError('message cannot be empty') if message.nil? || message.empty?
+
     bot.send_message @game_channel_id, message
   end
 
   def say_admin(message)
     raise ValueError('message cannot be empty') if message.nil? || message.empty?
+
     bot.send_message @bot_admin_channel_id, message
   end
 
@@ -126,11 +129,10 @@ class GameBotBase
 end
 
 class ChessBotBase < GameBotBase
-  attr_reader :chess_game
-  attr_reader :max_moves
+  attr_reader :chess_game, :max_moves
 
   def initialize(max_moves: 50, **args)
-    super **args
+    super(**args)
 
     # User sends a chess move
     @bot.message start_with: ChessMove.regex, in: @channel_id do |event|
@@ -141,9 +143,7 @@ class ChessBotBase < GameBotBase
     # User can send move with '!move <move>', this command is defined mostly to
     # be seen from !help command
     @bot.command :move, aliases: [:go] do |move_text|
-      if move_text.nil? || move_text.empty?
-        say 'Usage: !move <move>, e.g.: !move e2e4'
-      end
+      say 'Usage: !move <move>, e.g.: !move e2e4' if move_text.nil? || move_text.empty?
 
       on_move_message(event.user, ChessMove.from_s(move_text))
       nil
@@ -155,7 +155,7 @@ class ChessBotBase < GameBotBase
 
   def start_chess_game(white_player: nil, black_player: nil)
     @chess_game = ChessGame.new(white_player: white_player,
-      black_player: black_player, max_moves: max_moves)
+                                black_player: black_player, max_moves: max_moves)
   end
 
   def end_chess_game

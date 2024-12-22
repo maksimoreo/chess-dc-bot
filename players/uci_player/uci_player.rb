@@ -7,7 +7,7 @@ class UCIPlayer < Player
     @uci.prepare options
   end
 
-  def new_game(chessboard, color)
+  def new_game(_chessboard, _color)
     @uci.new_game
   end
 

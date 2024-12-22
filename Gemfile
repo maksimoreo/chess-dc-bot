@@ -8,3 +8,5 @@ gem 'discordrb'
 
 # Used to render chessboard image (chessboard_printer/chessboard_printer.rb)
 gem 'rmagick'
+
+gem 'rubocop', require: false

@@ -1,5 +1,3 @@
-
-
 # Similar to Concurrent::TimerTask but execution can be paused from the task
 # and resumed again
 # Additional thread can be stopped with #stop_thread only once, then the object

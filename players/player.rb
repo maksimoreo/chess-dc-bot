@@ -4,7 +4,6 @@
 # @prev_chessboard - accessible since second #play until #stop_game
 class Player
   def invoke_new_game(chessboard, color)
-    @prev_chessboard
     @chessboard = chessboard
     @color = color
 
@@ -33,6 +32,6 @@ class Player
   private
 
   def try_invoke(method_name, *args)
-    self.send(method_name, *args) if respond_to? method_name
+    send(method_name, *args) if respond_to? method_name
   end
 end

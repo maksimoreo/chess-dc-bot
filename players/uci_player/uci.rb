@@ -1,5 +1,3 @@
-
-
 # UCI (Unified Chess Interface). This class provides interface to UCI compatible chess engine
 class UCI
   def initialize(execute_command_name = nil)
@@ -7,8 +5,9 @@ class UCI
   end
 
   def start(execute_command_name)
-    raise RuntimeError.new('io is still opened') if !@io.nil? && !@io.closed?
-    @io = IO.popen(execute_command_name, mode = 'r+')
+    raise 'io is still opened' if !@io.nil? && !@io.closed?
+
+    @io = IO.popen(execute_command_name, 'r+')
     @io.closed?
   end
 
@@ -23,7 +22,7 @@ class UCI
   end
 
   def set_options(options_array)
-    options_array.each { |(name,value)| set_option name, value } unless options_array.nil?
+    options_array.each { |(name, value)| set_option name, value } unless options_array.nil?
   end
 
   def set_option(name, value)
@@ -58,7 +57,7 @@ class UCI
   # (u can do some additional work between send_fen and receive_best_move, then
   # call this function which will block until it receives the best move)
   def receive_best_move
-    output = receive_get /^bestmove ([a-h][1-8]){2}[qrbk]?/
+    output = receive_get(/^bestmove ([a-h][1-8]){2}[qrbk]?/)
     ChessMove.from_s(output[9, 5])
   end
 

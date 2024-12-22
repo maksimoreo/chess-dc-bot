@@ -26,7 +26,7 @@ class ChessBotTeamVsComputer < ChessBotBase
       # perform most popular user move
       # perform computer move or end the game
       # prepare to receive new messages or end the game
-      on_timer_end()
+      on_timer_end
       puts "#{Time.now} end of the task"
       :success # If return nil TaskObserver will think task returned an error
     end
@@ -34,7 +34,7 @@ class ChessBotTeamVsComputer < ChessBotBase
 
     # User commands
     # User wants to start the game
-    @bot.command :play, aliases: [:start] do |event|
+    @bot.command :play, aliases: [:start] do |_event|
       if game_going?
         say 'There is a game already going! End current game to start new one'
       else
@@ -45,7 +45,7 @@ class ChessBotTeamVsComputer < ChessBotBase
     end
 
     # User wants to surrender
-    @bot.command :surrender, aliases: [:resign, :giveup, :give_up, :abandon] do |event|
+    @bot.command :surrender, aliases: %i[resign giveup give_up abandon] do |event|
       if game_going?
         @players_votes[event.user.distinct] = :surrender
       else
@@ -107,7 +107,15 @@ class ChessBotTeamVsComputer < ChessBotBase
           accumulate_msg "Performing move #{best_move}."
         else
           best_move = best_moves.to_a.sample[0]
-          accumulate_msg "Performing move #{best_move} (choosen randomly from #{best_moves.size > 5 ? best_moves.first(5).map { |move, _votes| move }.join(', ') + ', ...' : best_moves.map { |move, _votes| move }.join(', ')})"
+          accumulate_msg "Performing move #{best_move} (choosen randomly from #{if best_moves.size > 5
+                                                                                  best_moves.first(5).map { |move, _votes|
+                                                                                    move
+                                                                                  }.join(', ') + ', ...'
+                                                                                else
+                                                                                  best_moves.map do |move, _votes|
+                                                                                    move
+                                                                                  end.join(', ')
+                                                                                end})"
         end
 
         # Play move
@@ -175,7 +183,7 @@ class ChessBotTeamVsComputer < ChessBotBase
     # Stop timer task
     @input_timer_task.pause
 
-    send_chessboard "Game ended! #{@players_color == @chess_game.state ? "players_won_message" : "players_lost_message"}"
+    send_chessboard "Game ended! #{@players_color == @chess_game.state ? 'players_won_message' : 'players_lost_message'}"
 
     # Debug
     puts "on_game_end: chess_game.state: #{@chess_game.state}"
@@ -188,10 +196,9 @@ class ChessBotTeamVsComputer < ChessBotBase
 
   def filter_players_votes
     # Sorted hash of voted moves { move => vote_number }
-    voted_moves = @players_votes.reduce(Hash.new(0)) do |moves, (user, move)|
+    voted_moves = @players_votes.each_with_object(Hash.new(0)) do |(_user, move), moves|
       moves[move] += 1
-      moves
-    end.sort_by { |_move, votes| votes}.reverse.to_h
+    end.sort_by { |_move, votes| votes }.reverse.to_h
 
     # Reject impossible moves
     filtered_voted_moves = voted_moves.select do |move, _count|

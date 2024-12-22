@@ -5,8 +5,7 @@ require_relative 'chessboard_printer/chessboard_printer'
 require_relative 'chess_ruby/lib/chess_move'
 
 class ChessGame
-  attr_reader :current_color
-  attr_reader :state
+  attr_reader :current_color, :state
 
   def initialize(white_player: nil, black_player: nil, chessboard: Chessboard.default_chessboard, max_moves: 0)
     @cb_printer = ChessboardPrinter.new
@@ -116,18 +115,16 @@ class ChessGame
 
   def update_state
     # If no moves for current color
-    if @allowed_moves.empty?
-      # If current player is in check (checkmate)
-      if @chessboard.check?(@current_color)
-        @state = ChessPiece.opposite_color(@current_color)
-      else
-        @state = :draw
-      end
-    # If counting moves and moves counter exceeded max moves
-    elsif !@max_moves.zero? && @moves_counter >= @max_moves
-      @state = :out_of_moves
-    else
-      @state = nil
-    end
+    @state = if @allowed_moves.empty?
+               # If current player is in check (checkmate)
+               if @chessboard.check?(@current_color)
+                 ChessPiece.opposite_color(@current_color)
+               else
+                 :draw
+               end
+             # If counting moves and moves counter exceeded max moves
+             elsif !@max_moves.zero? && @moves_counter >= @max_moves
+               :out_of_moves
+             end
   end
 end

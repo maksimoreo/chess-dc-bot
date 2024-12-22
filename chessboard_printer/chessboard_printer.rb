@@ -51,7 +51,7 @@ class ChessboardPrinter
     images = { white: {}, black: {} }
 
     # Load chess piece images
-    [:white, :black].each do |color|
+    %i[white black].each do |color|
       IMAGE_FILE_NAMES[color].each_pair do |chess_piece_name, file_name|
         chess_piece_image_path = path_to_image(file_name)
         images[color][chess_piece_name] = ImageList.new(chess_piece_image_path)
