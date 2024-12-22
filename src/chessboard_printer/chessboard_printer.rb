@@ -1,22 +1,33 @@
+# frozen_string_literal: true
+
 require 'rmagick'
-include Magick
 
 CELL_OFFSET_X = 64
 CELL_OFFSET_Y = 64
 CHESSBOARD_CELL_SIZE = 64
-IMAGES_DIRECTORY_NAME = 'chessboard_printer/images'
+IMAGES_DIRECTORY_NAME = 'src/chessboard_printer/images'
 CHESSBOARD_IMAGE_FILE_NAME = 'chessboard.png'
 OUTPUT_IMAGE_FILE_NAME = 'output_chessboard_temp.png'
 
 IMAGE_FILE_NAMES = {
   white: {
-    'Pawn' => 'white_pawn.png', 'Knight' => 'white_knight.png', 'Bishop' => 'white_bishop.png', 'Rook' => 'white_rook.png', 'Queen' => 'white_queen.png', 'King' => 'white_king.png'
+    'Pawn'   => 'white_pawn.png',
+    'Knight' => 'white_knight.png',
+    'Bishop' => 'white_bishop.png',
+    'Rook'   => 'white_rook.png',
+    'Queen'  => 'white_queen.png',
+    'King'   => 'white_king.png'
   },
   black: {
-    'Pawn' => 'black_pawn.png', 'Knight' => 'black_knight.png', 'Bishop' => 'black_bishop.png', 'Rook' => 'black_rook.png', 'Queen' => 'black_queen.png', 'King' => 'black_king.png'
+    'Pawn'   => 'black_pawn.png',
+    'Knight' => 'black_knight.png',
+    'Bishop' => 'black_bishop.png',
+    'Rook'   => 'black_rook.png',
+    'Queen'  => 'black_queen.png',
+    'King'   => 'black_king.png'
   },
   chessboard: 'chessboard.png'
-}
+}.freeze
 
 class ChessboardPrinter
   def initialize
@@ -37,7 +48,7 @@ class ChessboardPrinter
       # Put chess piece image on top of the chessboard
       x = pos.j * CHESSBOARD_CELL_SIZE + CELL_OFFSET_X
       y = (7 - pos.i) * CHESSBOARD_CELL_SIZE + CELL_OFFSET_Y
-      cb_image = cb_image.composite(chess_piece_image, x, y, OverCompositeOp)
+      cb_image = cb_image.composite(chess_piece_image, x, y, Magick::OverCompositeOp)
     end
 
     cb_image
@@ -54,12 +65,12 @@ class ChessboardPrinter
     %i[white black].each do |color|
       IMAGE_FILE_NAMES[color].each_pair do |chess_piece_name, file_name|
         chess_piece_image_path = path_to_image(file_name)
-        images[color][chess_piece_name] = ImageList.new(chess_piece_image_path)
+        images[color][chess_piece_name] = Magick::ImageList.new(chess_piece_image_path)
       end
     end
 
     # Load chessboard image
-    images[:chessboard] = ImageList.new(path_to_image(IMAGE_FILE_NAMES[:chessboard]))
+    images[:chessboard] = Magick::ImageList.new(path_to_image(IMAGE_FILE_NAMES[:chessboard]))
 
     images
   end

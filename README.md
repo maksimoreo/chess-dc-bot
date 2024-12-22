@@ -14,19 +14,24 @@ First install required gems (see Gemfile for dependencies):
 bundle install
 ```
 
-Create discord_config.rb file and fill your values:
+Define environment variables (all required):
 
-```ruby
-module DiscordConfig
-  DISCORD_BOT_TOKEN =           1111
-  CHANNEL_ID_TEAM_VS_COMPUTER = 1111
-  BOT_ADMIN_ROLE_ID =           1111
-  BOT_ADMIN_CHANNEL_ID =        1111
-end
+```sh
+# Discord token
+CHESS_BOT_DISCORD_TOKEN = ""
+
+# Channel ID, where players can interact with the bot
+CHESS_BOT_GAME_CHANNEL_ID = ""
+
+# Roles that can do administration with the bot
+CHESS_BOT_ADMIN_ROLE_ID = ""
+
+# Channel ID, where bot will write logs
+CHESS_BOT_ADMIN_CHANNEL_ID = ""
 ```
 
 Finally you can run the bot:
 
 ```sh
-ruby main.rb
+ruby src/main.rb
 ```

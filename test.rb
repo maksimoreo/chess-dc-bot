@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 # the very minimal bot to test if bot works and can connect to the internet
 # Run:
-# DISCORD_BOT_TOKEN=12345 ruby test.rb
+# CHESS_BOT_DISCORD_TOKEN=12345 ruby test.rb
 
 require 'discordrb'
 
-bot = Discordrb::Bot.new token: ENV['DISCORD_BOT_TOKEN']
+bot = Discordrb::Bot.new token: ENV.fetch('CHESS_BOT_DISCORD_TOKEN')
 
 at_exit { bot.stop }
 

@@ -1,8 +1,12 @@
-require 'stringio' # see send_chessboard method
-require_relative 'chess_ruby/lib/chessboard'
-require_relative 'chess_ruby/lib/chesspieces/chesspiece'
+# frozen_string_literal: true
+
+require 'stringio'
+
+require_relative '../chess_ruby/lib/chessboard'
+require_relative '../chess_ruby/lib/chesspieces/chesspiece'
+require_relative '../chess_ruby/lib/chess_move'
+
 require_relative 'chessboard_printer/chessboard_printer'
-require_relative 'chess_ruby/lib/chess_move'
 
 class ChessGame
   attr_reader :current_color, :state
@@ -13,9 +17,9 @@ class ChessGame
     @current_color = :white
     update_allowed_moves
 
-    @color_player_hash = { white: nil, black: nil }
-    init_player(white_player, :white)
-    init_player(black_player, :black)
+    @color_player_hash = { white: white_player, black: black_player }
+    white_player&.invoke_new_game(@chessboard, :white)
+    black_player&.invoke_new_game(@chessboard, :black)
 
     @state = nil
 
@@ -24,25 +28,26 @@ class ChessGame
   end
 
   def play_player_move(move_time)
-    unless current_player.nil?
-      move = current_player.invoke_play(@chessboard, move_time)
-      try_move(move)
-      return move
-    end
-    nil
+    return if current_player.nil?
+
+    move = current_player.invoke_play(@chessboard, move_time)
+    try_move(move)
+
+    move
   end
 
   def try_move(move)
-    if move_allowed?(move)
-      @chessboard.move(move)
-      puts "performed this move: #{move}"
-      switch_current_color
-      @moves_counter += 1 if @current_color == :white
-      update_allowed_moves
-      update_state
-    else
+    unless move_allowed?(move)
       puts "this move is not allowed: #{move}"
+      return
     end
+
+    @chessboard.move(move)
+    puts "performed this move: #{move}"
+    switch_current_color
+    @moves_counter += 1 if @current_color == :white
+    update_allowed_moves
+    update_state
   end
 
   def send_chessboard(bot, channel_id, message)
@@ -93,17 +98,12 @@ class ChessGame
   end
 
   def uninitialize
-    @color_player_hash.each do |_color, player|
-      player.invoke_stop_game unless player.nil?
+    @color_player_hash.each_value do |player|
+      player&.invoke_stop_game
     end
   end
 
   private
-
-  def init_player(player, their_color)
-    player.invoke_new_game(@chessboard, their_color) unless player.nil?
-    @color_player_hash[their_color] = player
-  end
 
   def current_player
     @color_player_hash[@current_color]

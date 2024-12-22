@@ -1,14 +1,21 @@
+# frozen_string_literal: true
+
 require 'discordrb'
 
-require_relative 'chess'
-require_relative 'discord_config'
+require_relative 'chess_game'
 
 class GameBotBase
   attr_reader :bot
 
-  def initialize(game_channel_id:, on_stop: nil,
-                 token: (DiscordConfig.const_defined?('DISCORD_BOT_TOKEN') ? DiscordConfig::DISCORD_BOT_TOKEN : ENV['DISCORD_BOT_TOKEN']), bot_admin_role_id: DiscordConfig::BOT_ADMIN_ROLE_ID,
-                 bot_admin_channel_id: DiscordConfig::BOT_ADMIN_CHANNEL_ID)
+  def initialize(
+    logger:,
+    game_channel_id:,
+    token: ENV.fetch('CHESS_BOT_DISCORD_TOKEN'),
+    bot_admin_role_id: ENV.fetch('CHESS_BOT_ADMIN_ROLE_ID'),
+    bot_admin_channel_id: ENV.fetch('CHESS_BOT_ADMIN_CHANNEL_ID')
+  )
+    @logger = logger
+
     @game_channel_id = game_channel_id
     @bot_admin_channel_id = bot_admin_channel_id
     @bot_admin_role_id = bot_admin_role_id
@@ -20,8 +27,7 @@ class GameBotBase
     # Bot admin can stop the bot process
     @bot.command :shutdown, aliases: %i[bot_stop stop_bot disconnect], allowed_roles: [@bot_admin_role_id],
                             help_available: false do |event|
-      puts "User #{event.user.distinct} stopped the bot."
-      on_stop.call unless on_stop.nil?
+      puts "#{Time.now.utc} User #{event.user.distinct} stopped the bot."
       stop
 
       nil
@@ -101,12 +107,6 @@ class GameBotBase
     bot.send_message @game_channel_id, message unless message.nil? || message.empty?
   end
 
-  def say!(message)
-    raise ArgumentError('message cannot be empty') if message.nil? || message.empty?
-
-    bot.send_message @game_channel_id, message
-  end
-
   def say_admin(message)
     raise ValueError('message cannot be empty') if message.nil? || message.empty?
 
@@ -125,65 +125,5 @@ class GameBotBase
 
   def reset_msg_accumulator
     @msg_accumulator = ''
-  end
-end
-
-class ChessBotBase < GameBotBase
-  attr_reader :chess_game, :max_moves
-
-  def initialize(max_moves: 50, **args)
-    super(**args)
-
-    # User sends a chess move
-    @bot.message start_with: ChessMove.regex, in: @channel_id do |event|
-      on_move_message(event.user, ChessMove.from_s(event.content))
-      nil
-    end
-
-    # User can send move with '!move <move>', this command is defined mostly to
-    # be seen from !help command
-    @bot.command :move, aliases: [:go] do |move_text|
-      say 'Usage: !move <move>, e.g.: !move e2e4' if move_text.nil? || move_text.empty?
-
-      on_move_message(event.user, ChessMove.from_s(move_text))
-      nil
-    end
-
-    @chess_game = nil
-    @max_moves = max_moves
-  end
-
-  def start_chess_game(white_player: nil, black_player: nil)
-    @chess_game = ChessGame.new(white_player: white_player,
-                                black_player: black_player, max_moves: max_moves)
-  end
-
-  def end_chess_game
-    @chess_game.uninitialize
-    @chess_game = nil
-  end
-
-  def chess_game_state
-    @chess_game.state
-  end
-
-  def send_chessboard(message)
-    @chess_game.send_chessboard(@bot, @game_channel_id, message)
-  end
-
-  def send_chessboard_with_msg_accumulator(additional_msg = nil)
-    accumulate_msg additional_msg unless additional_msg.nil?
-    send_chessboard @msg_accumulator
-    reset_msg_accumulator
-  end
-
-  # Game hasn't been started yet
-  def game_going?
-    !@chess_game.nil?
-  end
-
-  # Game was started and ended by now
-  def game_end?
-    @chess_game.end?
   end
 end
