@@ -9,10 +9,10 @@ require_relative 'chess_bot_base'
 class ChessBotTeamVsComputer < ChessBotBase
   attr_reader :players_move_time
 
-  def initialize(players_move_time:, computer_move_time:, chess_ai:, **args)
+  def initialize(players_move_time:, computer_move_time:, chess_ai_player:, **args)
     super(game_channel_id: ENV.fetch('CHESS_BOT_GAME_CHANNEL_ID'), **args)
 
-    @chess_ai = chess_ai
+    @chess_ai_player = chess_ai_player
     @players_move_time = players_move_time
     @computer_move_time = computer_move_time
 
@@ -64,18 +64,18 @@ class ChessBotTeamVsComputer < ChessBotBase
     end
 
     @players_votes[user.distinct] = move
-    puts "Accepted move #{move} from #{user.distinct}"
+    @logger.info "Accepted move #{move} from #{user.distinct}"
   end
 
   def start_game
-    start_chess_game black_player: @chess_ai
+    start_chess_game black_player: @chess_ai_player
     send_chessboard "New game started! Your goal is to checkmate computer in #{@max_moves} moves. You cannot ask for draw. Players have #{@players_move_time} seconds for their every move, computer has #{@computer_move_time} seconds for his move."
     start_receiving_moves
     @players_color = :white
   end
 
   def handle_users_move_timer_completed
-    puts "#{Time.now.utc} Timer ended"
+    @logger.info 'Timer ended'
 
     @user_moves_task = nil
 
@@ -86,7 +86,7 @@ class ChessBotTeamVsComputer < ChessBotBase
     end
 
     voted_moves, filtered_voted_moves = filter_players_votes
-    puts "#{Time.now.utc} Done sorting and filtering moves"
+    @logger.debug 'Done sorting and filtering moves'
 
     # Info
     accumulate_msg(
@@ -124,7 +124,7 @@ class ChessBotTeamVsComputer < ChessBotBase
     # Clear vote history
     @players_votes = {}
   rescue StandardError => e
-    logger.error(e)
+    @logger.error(e)
     raise
   end
 
@@ -152,7 +152,7 @@ class ChessBotTeamVsComputer < ChessBotBase
 
   def start_receiving_moves
     # Start timer
-    puts "#{Time.now.utc} Timer started"
+    @logger.info 'Timer started'
 
     # Notify users
     say "It is your turn to play, send your moves! You have #{@players_move_time} seconds"
@@ -193,7 +193,8 @@ class ChessBotTeamVsComputer < ChessBotBase
   end
 
   def on_game_end
-    send_chessboard "Game ended! #{@players_color == @chess_game.state ? 'players_won_message' : 'players_lost_message'}"
+    state_message = @players_color == @chess_game.state ? 'Players won.' : 'Players lost.'
+    send_chessboard "Game ended! #{state_message}"
 
     # Cleaning
     end_chess_game

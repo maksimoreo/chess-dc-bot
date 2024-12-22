@@ -27,7 +27,7 @@ class GameBotBase
     # Bot admin can stop the bot process
     @bot.command :shutdown, aliases: %i[bot_stop stop_bot disconnect], allowed_roles: [@bot_admin_role_id],
                             help_available: false do |event|
-      puts "#{Time.now.utc} User #{event.user.distinct} stopped the bot."
+      logger.info("User #{event.user.distinct} stopped the bot.")
       stop
 
       nil
@@ -36,7 +36,8 @@ class GameBotBase
     # Bot admin can inspect object attributes (variables)
     @bot.command :read, aliases: %i[variable var getvar], allowed_roles: [@bot_admin_role_id],
                         help_available: false do |event, variable_name|
-      puts "User #{event.user.distinct} asks to reveal variables value: #{variable_name}."
+      logger.info("User #{event.user.distinct} asks to reveal variables value: #{variable_name}.")
+
       if variable_name.nil? || variable_name.empty?
         say_admin 'Usage: !variable <variable name>'
       else
@@ -60,7 +61,8 @@ class GameBotBase
 
     @bot.command :set, aliases: [:setvar], allowed_roles: [@bot_admin_role_id], help_available: false,
                        arg_types: [String] do |event, variable_name, value|
-      puts "User #{event.user.distinct} asks to change variable: #{variable_name}."
+      logger.info("User #{event.user.distinct} asks to change variable: #{variable_name}.")
+
       if variable_name.nil? || variable_name.empty? || value.nil? || value.empty?
         say_admin 'Usage: !variable <variable name> <value>'
       else
@@ -77,7 +79,8 @@ class GameBotBase
 
     @bot.command :setint, aliases: %i[setvarint setintvar], allowed_roles: [@bot_admin_role_id],
                           help_available: false, arg_types: [String, Integer] do |event, variable_name, value|
-      puts "User #{event.user.distinct} asks to change variable: #{variable_name}."
+      logger.info("User #{event.user.distinct} asks to change variable: #{variable_name}.")
+
       if variable_name.nil? || variable_name.empty? || value.nil?
         say_admin 'Usage: !variable <variable name> <value>'
       else
@@ -94,21 +97,23 @@ class GameBotBase
   end
 
   def run
-    say_admin p "Bot started at #{Time.now}"
+    say_admin "Bot started at #{Time.now.utc}"
     @bot.run
   end
 
   def stop
-    say_admin p "Bot stopped at #{Time.now}"
+    say_admin "Bot stopped at #{Time.now.utc}"
     @bot.stop
   end
 
   def say(message)
-    bot.send_message @game_channel_id, message unless message.nil? || message.empty?
+    raise ArgumentError('message cannot be empty') if message.nil? || message.empty?
+
+    bot.send_message @game_channel_id, message
   end
 
   def say_admin(message)
-    raise ValueError('message cannot be empty') if message.nil? || message.empty?
+    raise ArgumentError('message cannot be empty') if message.nil? || message.empty?
 
     bot.send_message @bot_admin_channel_id, message
   end

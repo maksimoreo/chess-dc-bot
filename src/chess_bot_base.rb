@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'game_bot_base'
+require_relative 'chessboard_printer/chessboard_image_printer'
 
 class ChessBotBase < GameBotBase
   attr_reader :chess_game, :max_moves
@@ -16,6 +17,7 @@ class ChessBotBase < GameBotBase
 
     @chess_game = nil
     @max_moves = max_moves
+    @chessboard_printer = ChessboardImagePrinter.new
   end
 
   def start_chess_game(white_player: nil, black_player: nil)
@@ -32,7 +34,20 @@ class ChessBotBase < GameBotBase
   end
 
   def send_chessboard(message)
-    @chess_game.send_chessboard(@bot, @game_channel_id, message)
+    message ||= 'Rendered chessboard image:'
+
+    image = @chessboard_printer.print(@chess_game.chessboard)
+    image_io = StringIO.new(image.to_blob)
+
+    # hax
+    # related:
+    # https://stackoverflow.com/questions/7984902/restclient-multipart-upload-from-io
+    # https://gist.github.com/Burgestrand/850377
+    def image_io.path
+      'message.png'
+    end
+
+    @bot.send_file(@game_channel_id, image_io, caption: message)
   end
 
   def send_chessboard_with_msg_accumulator(additional_msg = nil)
@@ -41,12 +56,10 @@ class ChessBotBase < GameBotBase
     reset_msg_accumulator
   end
 
-  # Game hasn't been started yet
   def game_going?
     !@chess_game.nil?
   end
 
-  # Game was started and ended by now
   def game_end?
     @chess_game.end?
   end

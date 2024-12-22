@@ -29,7 +29,7 @@ IMAGE_FILE_NAMES = {
   chessboard: 'chessboard.png'
 }.freeze
 
-class ChessboardPrinter
+class ChessboardImagePrinter
   def initialize
     @images = load_images
   end

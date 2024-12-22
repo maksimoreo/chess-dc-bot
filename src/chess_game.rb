@@ -6,13 +6,10 @@ require_relative '../chess_ruby/lib/chessboard'
 require_relative '../chess_ruby/lib/chesspieces/chesspiece'
 require_relative '../chess_ruby/lib/chess_move'
 
-require_relative 'chessboard_printer/chessboard_printer'
-
 class ChessGame
-  attr_reader :current_color, :state
+  attr_reader :chessboard, :current_color, :state
 
   def initialize(white_player: nil, black_player: nil, chessboard: Chessboard.default_chessboard, max_moves: 0)
-    @cb_printer = ChessboardPrinter.new
     @chessboard = chessboard
     @current_color = :white
     update_allowed_moves
@@ -37,35 +34,12 @@ class ChessGame
   end
 
   def try_move(move)
-    unless move_allowed?(move)
-      puts "this move is not allowed: #{move}"
-      return
-    end
-
     @chessboard.move(move)
-    puts "performed this move: #{move}"
+    logger.debug "performed this move: #{move}"
     switch_current_color
     @moves_counter += 1 if @current_color == :white
     update_allowed_moves
     update_state
-  end
-
-  def send_chessboard(bot, channel_id, message)
-    message ||= 'Rendered chessboard image:'
-
-    image = @cb_printer.print(@chessboard)
-    image_io = StringIO.new(image.to_blob)
-
-    # hax
-    # saw usage of this here:
-    # https://stackoverflow.com/questions/7984902/restclient-multipart-upload-from-io
-    # and here:
-    # https://gist.github.com/Burgestrand/850377
-    def image_io.path
-      'message.png'
-    end
-
-    bot.send_file(channel_id, image_io, caption: message)
   end
 
   def move_allowed?(move)
