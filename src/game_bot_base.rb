@@ -5,7 +5,7 @@ require 'discordrb'
 require_relative 'chess_game'
 
 class GameBotBase
-  attr_reader :bot
+  attr_reader :bot, :logger
 
   def initialize(
     logger:,
@@ -14,6 +14,8 @@ class GameBotBase
     bot_admin_role_id: ENV.fetch('CHESS_BOT_ADMIN_ROLE_ID'),
     bot_admin_channel_id: ENV.fetch('CHESS_BOT_ADMIN_CHANNEL_ID')
   )
+    @running = false
+
     @logger = logger
 
     @game_channel_id = game_channel_id
@@ -98,13 +100,19 @@ class GameBotBase
 
   def run
     say_admin "Bot started at #{Time.now.utc}"
+    @running = true
+
     @bot.run
   end
 
   def stop
     say_admin "Bot stopped at #{Time.now.utc}"
     @bot.stop
+
+    @running = false
   end
+
+  def running? = @running
 
   def say(message)
     raise ArgumentError('message cannot be empty') if message.nil? || message.empty?

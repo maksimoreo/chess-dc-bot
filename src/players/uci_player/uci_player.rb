@@ -5,7 +5,7 @@ require_relative '../player'
 
 # UCI engine chess player
 class UCIPlayer < Player
-  def initialize(uci_engine_path, options = nil)
+  def initialize(uci_engine_path, options: nil)
     super()
 
     @uci = UCI.new(uci_engine_path)

@@ -5,7 +5,7 @@ require 'concurrent/scheduled_task'
 
 require_relative 'chess_bot_base'
 
-# This script provides team vs computer chess gameplay
+# Team vs computer chess gameplay
 class ChessBotTeamVsComputer < ChessBotBase
   attr_reader :players_move_time
 
@@ -22,6 +22,14 @@ class ChessBotTeamVsComputer < ChessBotBase
     # User commands
     @bot.command(:play, aliases: [:start]) { handle_command__play }
     @bot.command(:surrender, aliases: %i[resign giveup give_up abandon]) { handle_command__surrender(_1) }
+  end
+
+  def stop
+    logger.info('Closing chess player')
+
+    @chess_ai_player.invoke_quit
+
+    super
   end
 
   def schedule_players_move_task
@@ -64,7 +72,7 @@ class ChessBotTeamVsComputer < ChessBotBase
     end
 
     @players_votes[user.distinct] = move
-    @logger.info "Accepted move #{move} from #{user.distinct}"
+    logger.info "Accepted move #{move} from #{user.distinct}"
   end
 
   def start_game
@@ -75,7 +83,7 @@ class ChessBotTeamVsComputer < ChessBotBase
   end
 
   def handle_users_move_timer_completed
-    @logger.info 'Timer ended'
+    logger.info 'Timer ended'
 
     @user_moves_task = nil
 
@@ -86,7 +94,7 @@ class ChessBotTeamVsComputer < ChessBotBase
     end
 
     voted_moves, filtered_voted_moves = filter_players_votes
-    @logger.debug 'Done sorting and filtering moves'
+    logger.debug 'Done sorting and filtering moves'
 
     # Info
     accumulate_msg(
@@ -124,7 +132,7 @@ class ChessBotTeamVsComputer < ChessBotBase
     # Clear vote history
     @players_votes = {}
   rescue StandardError => e
-    @logger.error(e)
+    logger.error(e)
     raise
   end
 
@@ -152,7 +160,7 @@ class ChessBotTeamVsComputer < ChessBotBase
 
   def start_receiving_moves
     # Start timer
-    @logger.info 'Timer started'
+    logger.info 'Timer started'
 
     # Notify users
     say "It is your turn to play, send your moves! You have #{@players_move_time} seconds"

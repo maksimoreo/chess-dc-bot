@@ -1,10 +1,16 @@
 # Discord Chess Bot built with Ruby
 
+Discord bot to play chess with.
+
+![Video demonstration of chess bot](demo.gif)
+
+Features:
+
+- ✋ Vote system where players vote for their next move
+- 🤖 Integration with a chess engine (like [Stockfish](https://stockfishchess.org/)) using [UCI protocol](https://en.wikipedia.org/wiki/Universal_Chess_Interface)
+- 🖼️ Chessboard image generation using [ImageMagick](https://imagemagick.org/index.php)
+
 Created at December 29th, 2020
-
-Demo:
-
-![Chess bot demo GIF](demo.gif)
 
 # Usage
 
@@ -30,6 +36,8 @@ CHESS_BOT_ADMIN_ROLE_ID = ""
 CHESS_BOT_ADMIN_CHANNEL_ID = ""
 ```
 
+See `.env.example` for complete list of available environment variables.
+
 Finally you can run the bot:
 
 ```sh
@@ -37,6 +45,21 @@ ruby src/main.rb
 ```
 
 The bot is now online. Start the game with `!play` command and send moves with `!move e2e4`.
+
+## Stockfish
+
+To use with Stockfish define these environment variables:
+
+```sh
+# Path to UCI engine executable, like Stockfish. If not specified, bot will move randomly.
+CHESS_BOT_UCI_ENGINE_PATH
+
+# Set skill level for Stockfish in range [0, 20]
+# See: https://official-stockfish.github.io/docs/stockfish-wiki/UCI-&-Commands.html#setoption
+CHESS_BOT_SKILL_LEVEL = 5
+```
+
+Bot will spawn separate process (specified by `CHESS_BOT_UCI_ENGINE_PATH` environment variable) and communicate with it using UCI protocol through stdin / stdout. Engine process will be kept for the duration of main process lifetime.
 
 ## Docker
 
@@ -55,6 +78,8 @@ docker run -it --rm \
 ```
 
 ### With Stockfish
+
+Script will download Stockfish source code and compile it. Skill level can be controlled with `CHESS_BOT_SKILL_LEVEL` environment variable. No need to specify `CHESS_BOT_UCI_ENGINE_PATH` environment variable.
 
 ```sh
 # Build
