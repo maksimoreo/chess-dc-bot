@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Base class for chess player
 # Provides variables:
 # @color - accessible since #new_game untill #stop_game
@@ -31,7 +33,7 @@ class Player
 
   private
 
-  def try_invoke(method_name, *args)
-    send(method_name, *args) if respond_to? method_name
+  def try_invoke(method_name, *)
+    public_send(method_name, *) if respond_to? method_name
   end
 end

@@ -1,0 +1,30 @@
+FROM ruby:3.2.1
+
+# Install packages
+
+RUN apt-get update && apt-get install -y build-essential make
+
+WORKDIR /stockfish
+
+# Download and build Stockfish
+RUN curl -OL https://github.com/official-stockfish/Stockfish/archive/refs/tags/sf_17.tar.gz
+
+RUN tar -xvzf sf_17.tar.gz
+
+WORKDIR /stockfish/Stockfish-sf_17/src
+
+RUN make -j profile-build
+
+RUN make install
+
+ENV CHESS_BOT_UCI_ENGINE_PATH=stockfish
+
+# Install chess bot
+WORKDIR /chess_bot
+
+COPY Gemfile Gemfile.lock ./
+RUN bundle install
+
+COPY . .
+
+CMD ["ruby", "./src/main.rb"]

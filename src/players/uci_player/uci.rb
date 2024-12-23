@@ -1,4 +1,6 @@
-# UCI (Unified Chess Interface). This class provides interface to UCI compatible chess engine
+# frozen_string_literal: true
+
+# Provides interface to UCI (Unified Chess Interface) compatible chess engine.
 class UCI
   def initialize(execute_command_name = nil)
     @io = IO.popen(execute_command_name, 'r+') unless execute_command_name.nil?
@@ -22,7 +24,7 @@ class UCI
   end
 
   def set_options(options_array)
-    options_array.each { |(name, value)| set_option name, value } unless options_array.nil?
+    options_array&.each { |(name, value)| set_option name, value }
   end
 
   def set_option(name, value)
@@ -68,11 +70,10 @@ class UCI
   end
 
   # If block is true this function will wait until engine receives goodbye msg
-  def quit(block = true)
+  def quit(block_until_eof: true)
     send 'quit'
 
-    # Block until eof is received
-    @io.eof? if block
+    @io.eof? if block_until_eof
 
     @io.close
   end
@@ -90,10 +91,12 @@ class UCI
 
   def receive_get(text)
     received_output = ''
-    while true
-      received_output = p @io.gets
+
+    loop do
+      received_output = @io.gets
       break if received_output.match? text
     end
+
     received_output
   end
 

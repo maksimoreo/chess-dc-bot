@@ -7,4 +7,4 @@ RUN bundle install
 
 COPY . .
 
-CMD ["bundle", "exec", "ruby", "./src/main.rb"]
+CMD ["ruby", "./src/main.rb"]

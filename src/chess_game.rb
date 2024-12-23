@@ -35,7 +35,6 @@ class ChessGame
 
   def try_move(move)
     @chessboard.move(move)
-    logger.debug "performed this move: #{move}"
     switch_current_color
     @moves_counter += 1 if @current_color == :white
     update_allowed_moves

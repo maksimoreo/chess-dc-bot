@@ -53,3 +53,19 @@ docker run -it --rm \
     --env CHESS_BOT_ADMIN_CHANNEL_ID="" \
     chess_bot:v1
 ```
+
+### With Stockfish
+
+```sh
+# Build
+docker build --tag chess_bot:stockfish-v1 --file Dockerfile.Stockfish .
+
+# Run
+docker run -it --rm \
+    --name chess_bot \
+    --env CHESS_BOT_DISCORD_TOKEN="" \
+    --env CHESS_BOT_GAME_CHANNEL_ID="" \
+    --env CHESS_BOT_ADMIN_ROLE_ID="" \
+    --env CHESS_BOT_ADMIN_CHANNEL_ID="" \
+    chess_bot:stockfish-v1
+```

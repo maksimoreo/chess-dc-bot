@@ -15,8 +15,16 @@ require_relative 'players/random_move_player'
 
 logger.info('Initializing code')
 
-chess_ai_player = RandomMovePlayer.new
-# # chess_ai = UCIPlayer.new DiscordConfig::UCI_ENGINE_PATH # , ['setoption name UCI_LimitStrength value 1']
+uci_engine_path = ENV.fetch('CHESS_BOT_UCI_ENGINE_PATH', nil)
+chess_ai_player = nil
+
+if uci_engine_path.nil? || uci_engine_path.empty?
+  logger.info('Initializing random move player')
+  chess_ai_player = RandomMovePlayer.new
+else
+  logger.info("Initializing UCI player with executable: #{uci_engine_path}")
+  chess_ai_player = UCIPlayer.new(uci_engine_path)
+end
 
 chess_bot = ChessBotTeamVsComputer.new(
   players_move_time: 10,
@@ -25,12 +33,19 @@ chess_bot = ChessBotTeamVsComputer.new(
   max_moves: 50,
   logger:
 )
-at_exit { chess_bot.send(:bot).stop }
+
+at_exit do
+  logger.info('Closing chess player')
+
+  chess_ai_player.invoke_quit
+
+  logger.info('Closing Discord bot')
+
+  chess_bot.send(:bot).stop
+
+  logger.info('All done, bye!')
+end
 
 logger.info('Running bot')
 
 chess_bot.run
-
-logger.info('Closing')
-
-chess_ai_player.invoke_quit

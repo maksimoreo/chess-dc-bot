@@ -1,8 +1,13 @@
+# frozen_string_literal: true
+
 require_relative 'uci'
 require_relative '../player'
 
+# UCI engine chess player
 class UCIPlayer < Player
   def initialize(uci_engine_path, options = nil)
+    super()
+
     @uci = UCI.new(uci_engine_path)
     @uci.prepare options
   end
